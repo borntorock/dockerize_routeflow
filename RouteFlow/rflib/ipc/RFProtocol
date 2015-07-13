@@ -1,0 +1,38 @@
+PortRegister
+    i64 vm_id
+    i32 vm_port
+    mac hwaddress
+
+PortConfig
+    i64 vm_id
+    i32 vm_port
+    i32 operation_id
+
+DatapathPortRegister
+    i64 ct_id
+    i64 dp_id
+    i32 dp_port
+    
+DatapathDown
+    i64 ct_id
+    i64 dp_id
+
+VirtualPlaneMap
+    i64 vm_id
+    i32 vm_port
+    i64 vs_id
+    i32 vs_port
+    
+DataPlaneMap
+    i64 ct_id
+    i64 dp_id
+    i32 dp_port
+    i64 vs_id
+    i32 vs_port
+
+RouteMod
+    i8 mod
+    i64 id
+    match[] matches
+    action[] actions
+    option[] options

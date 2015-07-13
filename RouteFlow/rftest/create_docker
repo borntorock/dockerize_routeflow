@@ -1,0 +1,67 @@
+#!/bin/bash
+
+if [ "$EUID" != "0" ]; then
+  echo "You must be root to run this script. Sorry, dude!"
+  exit 1
+fi
+
+bx="b1"
+rfvmy="rfvm1"
+rfvmx="rfvmA"
+
+abs_path=$(pwd)
+
+# Install Docker 
+#apt-get -y --force-yes install lxc-docker
+
+
+if [ -e ../rfclient/rfclient ]; then
+	cp ../rfclient/rfclient config/$rfvmy
+	cp ../rfclient/rfclient config/$rfvmx
+fi
+
+
+if [ -e /usr/local/lib/libzmq.so ]; then
+    cp /usr/local/lib/libzmq.so config/$rfvmy
+    cp /usr/local/lib/libzmq.so config/$rfvmx
+fi
+
+
+
+# Build the docker images from the dockerfile for bX containers
+cd config/$bx
+docker build --tag routeflow/bx:v1 .
+cd -
+
+# Build the docker images from the dockerfile for rfvm1 container
+cd config/$rfvmy
+docker build --tag routeflow/rfvm1:v1 .
+cd -
+
+# Build the docker images from the dockerfile for rfvmX containers
+cd config/$rfvmx
+docker build --tag routeflow/rfvmx:v1 .
+cd -
+
+# Launching bX docker containers from bX:v1 docker image
+b1=`docker run -d --name="b1" --hostname="b1" --mac-address=02:b1:b1:b1:b1:b1 routeflow/bx:v1`
+b2=`docker run -d --name="b2" --hostname="b2" --mac-address=02:b2:b2:b2:b2:b2 routeflow/bx:v1`
+docker stop $b1
+docker stop $b2
+
+# Launching rfvm1 docker container from rfvm1:v1 docker image
+rfvm1=`docker run -d --cap-add=ALL --name="rfvm1" --hostname="rfvm1" --mac-address=12:a0:a0:a0:a0:a0 routeflow/rfvm1:v1`
+docker stop $rfvm1
+
+# Launching rfvmX docker containers from rfvmX:v1 docker image
+docker run -d --cap-add=ALL --name="rfvmA" --hostname="rfvmA" --mac-address=02:a0:a0:a0:a0:a0 -v $abs_path/config/rfvmA/rootfs/etc/quagga:/etc/quagga routeflow/rfvmx:v1
+docker run -d --cap-add=ALL --name="rfvmB" --hostname="rfvmB" --mac-address=02:b0:b0:b0:b0:b0 -v $abs_path/config/rfvmB/rootfs/etc/quagga:/etc/quagga routeflow/rfvmx:v1
+docker run -d --cap-add=ALL --name="rfvmC" --hostname="rfvmC" --mac-address=02:c0:c0:c0:c0:c0 -v $abs_path/config/rfvmC/rootfs/etc/quagga:/etc/quagga routeflow/rfvmx:v1
+docker run -d --cap-add=ALL --name="rfvmD" --hostname="rfvmD" --mac-address=02:d0:d0:d0:d0:d0 -v $abs_path/config/rfvmD/rootfs/etc/quagga:/etc/quagga routeflow/rfvmx:v1
+
+for container in "b1" "b2" "rfvm1" "rfvmA" "rfvmB" "rfvmC" "rfvmD"
+do
+	if [[ `docker ps -a --filter "status=(running)" | grep "$container"` ]]; then
+    	docker stop $container
+    fi
+done

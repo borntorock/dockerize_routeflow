@@ -1,0 +1,149 @@
+#!/bin/bash
+
+if [ "$EUID" != "0" ]; then
+  echo "You must be root to run this script."
+  exit 1
+fi
+
+SCRIPT_NAME="rftest2"
+DOCKERDIR=/var/lib/docker
+IPC="zmq"
+MONGODB_CONF=/etc/mongodb.conf
+MONGODB_PORT=27017
+MONGODB_ADDR=172.17.42.1
+CONTROLLER_PORT=6633
+if [ -d ./build ]; then
+    RF_HOME=$PWD
+else
+    RF_HOME=..
+fi
+
+export PATH=$PATH:/usr/local/bin:/usr/local/sbin
+export PYTHONPATH=$PYTHONPATH:$RF_HOME
+
+cd $RF_HOME
+
+wait_port_listen() {
+    port=$1
+    while ! `nc -z localhost $port` ; do
+        echo -n .
+        sleep 1
+    done
+}
+
+echo_bold() {
+    echo -e "\033[1m${1}\033[0m"
+}
+
+kill_process_tree() {
+    top=$1
+    pid=$2
+
+    children=`ps -o pid --no-headers --ppid ${pid}`
+
+    for child in $children
+    do
+        kill_process_tree 0 $child
+    done
+
+    if [ $top -eq 0 ]; then
+        kill -9 $pid &> /dev/null
+    fi
+}
+
+reset() {
+    init=$1;
+    if [ $init -eq 1 ]; then
+        echo_bold "-> Starting $SCRIPT_NAME";
+    else
+        echo_bold "-> Stopping child processes...";
+        kill_process_tree 1 $$
+    fi
+
+    ovs-vsctl del-br dp0 &> /dev/null;
+    ovs-vsctl emer-reset &> /dev/null;
+
+    echo_bold "-> Stopping and resetting Docker containers...";
+    for container in "rfvmA" "rfvmB" "rfvmC" "rfvmD"
+    do
+        docker stop "$container";
+        while true
+        do
+            if [[ `docker ps -a --filter "status=(exited)" | grep "$container"` ]]; then
+                break;
+            fi
+            echo -n .
+            sleep 1
+        done
+    done
+
+    echo_bold "-> Deleting (previous) run data...";
+    mongo db --eval "
+        db.getCollection('rftable').drop(); 
+        db.getCollection('rfconfig').drop(); 
+        db.getCollection('rfstats').drop(); 
+        db.getCollection('rfclient<->rfserver').drop(); 
+        db.getCollection('rfserver<->rfproxy').drop();
+    "
+}
+reset 1
+trap "reset 0; exit 0" INT
+
+echo_bold "-> Setting up the management bridge (docker0)..."
+ifconfig docker0 $MONGODB_ADDR up
+
+if [ $IPC = "mongodb" ]; then
+	echo_bold "-> Setting up MongoDB..."
+	sed -i "/bind_ip/c\bind_ip = 127.0.0.1,$MONGODB_ADDR" $MONGODB_CONF
+	service mongodb restart
+	wait_port_listen $MONGODB_PORT
+fi
+
+echo_bold "-> Starting RFServer..."
+nice -n 20 ./rfserver/rfserver.py rftest/rftest2config.csv &
+
+echo_bold "-> Starting the docker containers..."
+rfvmA=`docker start rfvmA`
+rfvmB=`docker start rfvmB`
+rfvmC=`docker start rfvmC`
+rfvmD=`docker start rfvmD`
+
+echo_bold "-> Starting the controller and RFPRoxy..."
+ryu-manager --use-stderr --ofp-tcp-listen-port=$CONTROLLER_PORT ryu-rfproxy/rfproxy.py &
+wait_port_listen $CONTROLLER_PORT
+
+echo_bold "-> Starting the control plane network (dp0 VS)..."
+ovs-vsctl add-br dp0
+pipework dp0 -i eth1 $rfvmA 172.31.1.1/24 02:a1:a1:a1:a1:a1
+pipework dp0 -i eth2 $rfvmA 10.0.0.1/24 02:a2:a2:a2:a2:a2
+pipework dp0 -i eth3 $rfvmA 30.0.0.1/24 02:a3:a3:a3:a3:a3
+pipework dp0 -i eth4 $rfvmA 50.0.0.1/24 02:a4:a4:a4:a4:a4
+pipework dp0 -i eth1 $rfvmB 172.31.2.1/24 02:b1:b1:b1:b1:b1
+pipework dp0 -i eth2 $rfvmB 10.0.0.2/24 02:b2:b2:b2:b2:b2
+pipework dp0 -i eth3 $rfvmB 40.0.0.2/24 02:b3:b3:b3:b3:b3
+pipework dp0 -i eth1 $rfvmC 172.31.3.1/24 02:c1:c1:c1:c1:c1
+pipework dp0 -i eth2 $rfvmC 20.0.0.3/24 02:c2:c2:c2:c2:c2
+pipework dp0 -i eth3 $rfvmC 30.0.0.3/24 02:c3:c3:c3:c3:c3
+pipework dp0 -i eth1 $rfvmD 172.31.4.1/24 02:d1:d1:d1:d1:d1
+pipework dp0 -i eth2 $rfvmD 40.0.0.4/24 02:d2:d2:d2:d2:d2
+pipework dp0 -i eth3 $rfvmD 20.0.0.4/24 02:d3:d3:d3:d3:d3
+pipework dp0 -i eth4 $rfvmD 50.0.0.4/24 02:d4:d4:d4:d4:d4
+ovs-vsctl set Bridge dp0 other-config:datapath-id=7266767372667673
+ovs-vsctl set Bridge dp0 protocols=OpenFlow13
+ovs-vsctl set-controller dp0 tcp:127.0.0.1:$CONTROLLER_PORT
+ovs-ofctl -O OpenFlow13 add-flow dp0 actions=CONTROLLER:65509
+
+echo_bold "---"
+echo_bold "This test is up and running."
+echo_bold "Start Mininet:"
+echo_bold "  $ sudo mn --custom mininet/custom/topo-4sw-4host.py --topo=rftest2"
+echo_bold "    --controller=remote,ip=[host address],port=6633 --pre=ipconf"
+echo_bold "Replace [host address] with the address of this host's interface "
+echo_bold "connected to the Mininet VM."
+echo_bold "Then try pinging everything:"
+echo_bold "  mininet> pingall"
+echo_bold "You can stop this test by pressing CTRL+C."
+echo_bold "---"
+wait
+
+exit 0
