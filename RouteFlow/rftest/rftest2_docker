@@ -103,10 +103,10 @@ echo_bold "-> Starting RFServer..."
 nice -n 20 ./rfserver/rfserver.py rftest/rftest2config.csv &
 
 echo_bold "-> Starting the docker containers..."
-rfvmA=`docker start rfvmA`
-rfvmB=`docker start rfvmB`
-rfvmC=`docker start rfvmC`
-rfvmD=`docker start rfvmD`
+for container in "rfvmA" "rfvmB" "rfvmC" "rfvmD"
+do
+   	docker stop $container
+done
 
 echo_bold "-> Starting the controller and RFPRoxy..."
 ryu-manager --use-stderr --ofp-tcp-listen-port=$CONTROLLER_PORT ryu-rfproxy/rfproxy.py &
@@ -114,20 +114,20 @@ wait_port_listen $CONTROLLER_PORT
 
 echo_bold "-> Starting the control plane network (dp0 VS)..."
 ovs-vsctl add-br dp0
-pipework dp0 -i eth1 $rfvmA 172.31.1.1/24 02:a1:a1:a1:a1:a1
-pipework dp0 -i eth2 $rfvmA 10.0.0.1/24 02:a2:a2:a2:a2:a2
-pipework dp0 -i eth3 $rfvmA 30.0.0.1/24 02:a3:a3:a3:a3:a3
-pipework dp0 -i eth4 $rfvmA 50.0.0.1/24 02:a4:a4:a4:a4:a4
-pipework dp0 -i eth1 $rfvmB 172.31.2.1/24 02:b1:b1:b1:b1:b1
-pipework dp0 -i eth2 $rfvmB 10.0.0.2/24 02:b2:b2:b2:b2:b2
-pipework dp0 -i eth3 $rfvmB 40.0.0.2/24 02:b3:b3:b3:b3:b3
-pipework dp0 -i eth1 $rfvmC 172.31.3.1/24 02:c1:c1:c1:c1:c1
-pipework dp0 -i eth2 $rfvmC 20.0.0.3/24 02:c2:c2:c2:c2:c2
-pipework dp0 -i eth3 $rfvmC 30.0.0.3/24 02:c3:c3:c3:c3:c3
-pipework dp0 -i eth1 $rfvmD 172.31.4.1/24 02:d1:d1:d1:d1:d1
-pipework dp0 -i eth2 $rfvmD 40.0.0.4/24 02:d2:d2:d2:d2:d2
-pipework dp0 -i eth3 $rfvmD 20.0.0.4/24 02:d3:d3:d3:d3:d3
-pipework dp0 -i eth4 $rfvmD 50.0.0.4/24 02:d4:d4:d4:d4:d4
+pipework dp0 -i eth1 rfvmA 172.31.1.1/24 02:a1:a1:a1:a1:a1
+pipework dp0 -i eth2 rfvmA 10.0.0.1/24 02:a2:a2:a2:a2:a2
+pipework dp0 -i eth3 rfvmA 30.0.0.1/24 02:a3:a3:a3:a3:a3
+pipework dp0 -i eth4 rfvmA 50.0.0.1/24 02:a4:a4:a4:a4:a4
+pipework dp0 -i eth1 rfvmB 172.31.2.1/24 02:b1:b1:b1:b1:b1
+pipework dp0 -i eth2 rfvmB 10.0.0.2/24 02:b2:b2:b2:b2:b2
+pipework dp0 -i eth3 rfvmB 40.0.0.2/24 02:b3:b3:b3:b3:b3
+pipework dp0 -i eth1 rfvmC 172.31.3.1/24 02:c1:c1:c1:c1:c1
+pipework dp0 -i eth2 rfvmC 20.0.0.3/24 02:c2:c2:c2:c2:c2
+pipework dp0 -i eth3 rfvmC 30.0.0.3/24 02:c3:c3:c3:c3:c3
+pipework dp0 -i eth1 rfvmD 172.31.4.1/24 02:d1:d1:d1:d1:d1
+pipework dp0 -i eth2 rfvmD 40.0.0.4/24 02:d2:d2:d2:d2:d2
+pipework dp0 -i eth3 rfvmD 20.0.0.4/24 02:d3:d3:d3:d3:d3
+pipework dp0 -i eth4 rfvmD 50.0.0.4/24 02:d4:d4:d4:d4:d4
 ovs-vsctl set Bridge dp0 other-config:datapath-id=7266767372667673
 ovs-vsctl set Bridge dp0 protocols=OpenFlow13
 ovs-vsctl set-controller dp0 tcp:127.0.0.1:$CONTROLLER_PORT
