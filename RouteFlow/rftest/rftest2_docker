@@ -105,7 +105,7 @@ nice -n 20 ./rfserver/rfserver.py rftest/rftest2config.csv &
 echo_bold "-> Starting the docker containers..."
 for container in "rfvmA" "rfvmB" "rfvmC" "rfvmD"
 do
-   	docker stop $container
+    docker stop $container
 done
 
 echo_bold "-> Starting the controller and RFPRoxy..."
