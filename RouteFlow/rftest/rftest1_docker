@@ -150,12 +150,12 @@ if [ "$ACTION" != "RESET" ]; then
     ./rfserver/rfserver.py rftest/rftest1config.csv &
 
     echo_bold "-> Starting RFVM1..."
-    rfvm1=docker start rfvm1
+    docker start rfvm1
 
     echo_bold "-> Starting the control plane network (dp0 VS)..."
     ovs-vsctl add-br dp0
-    pipework dp0 -i eth1 $rfvm1 172.31.1.1/24 12:a1:a1:a1:a1:a1
-    pipework dp0 -i eth2 $rfvm1 172.31.2.1/24 12:a2:a2:a2:a2:a2
+    pipework dp0 -i eth1 rfvm1 172.31.1.1/24 12:a1:a1:a1:a1:a1
+    pipework dp0 -i eth2 rfvm1 172.31.2.1/24 12:a2:a2:a2:a2:a2
     ovs-vsctl set Bridge dp0 other-config:datapath-id=7266767372667673
     ovs-vsctl set Bridge dp0 protocols=$PROTOCOLS
     ovs-vsctl set-controller dp0 tcp:127.0.0.1:$CONTROLLER_PORT
@@ -163,12 +163,12 @@ if [ "$ACTION" != "RESET" ]; then
 
     echo_bold "-> Starting the sample network..."
     # Start the host VMs and give them a little time
-    b1=docker start b1
-    b2=docker start b2
+    docker start b1
+    docker start b2
     sleep 4
     ovs-vsctl add-br switch1
-    pipework dp0 -i eth0 $b1 172.31.1.2/24 02:b1:b1:b1:b1:b1
-    pipework dp0 -i eth0 $b2 172.31.2.2/24 02:b2:b2:b2:b2:b2
+    pipework dp0 -i eth0 b1 172.31.1.2/24 02:b1:b1:b1:b1:b1
+    pipework dp0 -i eth0 b2 172.31.2.2/24 02:b2:b2:b2:b2:b2
     ovs-vsctl set Bridge switch1 other-config:datapath-id=0000000000000099
     ovs-vsctl set Bridge switch1 protocols=$PROTOCOLS
     ovs-vsctl set-controller switch1 tcp:127.0.0.1:$CONTROLLER_PORT
