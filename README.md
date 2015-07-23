@@ -10,7 +10,6 @@ The goal of this is project to build the RouteFlow along with its virtual plane 
 ```
 sudo docker build --tag routeflow/routeflowx:v1 .
 ```
-
 2. Launch Docker container for building RouteFlow from routeflowx:v1 docker image
 ```
 sudo docker run -d --name="routeflow" routeflow/routeflowx:v1
@@ -43,12 +42,10 @@ You can stop the test at any time by pressing CTRL+C.
 ```
 $ sudo ./rftest1_docker -z --ryu
 ```
-
 2. You can then log in to the b1 docker container and try to ping b2:
 ```
 $ sudo docker exec -it b1 bash
 ```
-
 3. Inside b1 docker container, run:
 ```
 # ping 172.31.2.2
