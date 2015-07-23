@@ -27,9 +27,9 @@ ADD https://github.com/jpetazzo/pipework/blob/master/pipework /usr/sbin/pipework
 RUN chmod +x /usr/sbin/pipework
 
 # Cloning of the RouteFlow repository in "/var" directory
-RUN git clone https://github.com/routeflow/RouteFlow.git /var
+RUN git clone https://github.com/borntorock/dockerize_routeflow.git /var
 
 # Building the RouteFlow from the build script
-RUN chmod +x /var/RouteFlow/build.sh
+RUN chmod +x /var/dockerize_routeflow/RouteFlow/build.sh
 
-ENTRYPOINT ["/var/RouteFlow/build.sh", "-c", "-z", "ryu"]
+ENTRYPOINT ["/var/dockerize_routeflow/RouteFlow/build.sh", "-c", "-z", "ryu"]
