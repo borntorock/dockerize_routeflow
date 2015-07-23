@@ -1,6 +1,6 @@
 # Dockerize RouteFlow
-The goal of this is to build the RouteFlow along with its virtual plane components inside the docker containers. 
 
+The goal of this is to build the RouteFlow along with its virtual plane components inside the docker containers. 
 
 # Building
 
@@ -21,9 +21,11 @@ You are now ready to run the tests 1 and 2. For running the tests, refer the "Ru
 
 
 # Running
+
 The folder rftest contains all that is needed to create and run two test cases.
 
 ## Virtual environment
+
 First, create the docker containers for the RouteFlow virtual plane components that will run as virtual machines:
 ```
 $ cd rftest
@@ -31,6 +33,7 @@ $ sudo ./create_docker
 ```
 
 ## Test scenarios
+
 Default configuration files and Dockerfiles are present in the `rftest` directory.
 You can stop the test at any time by pressing CTRL+C.
 
