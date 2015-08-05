@@ -22,8 +22,6 @@ if [ -e /usr/local/lib/libzmq.so ]; then
     cp /usr/local/lib/libzmq.so config/$rfvmx
 fi
 
-
-
 # Build the docker images from the dockerfile for bX containers
 cd config/$bx
 docker build --tag routeflow/bx:v1 .
