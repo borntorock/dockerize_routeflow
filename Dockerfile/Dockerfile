@@ -20,7 +20,8 @@ RUN apt-get update && \
                        libnl-route-3-dev \
                        python-dev \
                        python-pip \
-                       python-bson
+                       python-bson \
+                       lxc-docker
 
 # Installing Pipework inside the RouteFlow container
 ADD https://github.com/jpetazzo/pipework/blob/master/pipework /usr/sbin/pipework
@@ -29,7 +30,10 @@ RUN chmod +x /usr/sbin/pipework
 # Cloning of the RouteFlow repository in "/var" directory
 RUN git clone https://github.com/borntorock/dockerize_routeflow.git /var
 
-# Building the RouteFlow from the build script
+# Providing executable permissions to build script of RouteFlow
 RUN chmod +x /var/dockerize_routeflow/RouteFlow/build.sh
 
-ENTRYPOINT ["/var/dockerize_routeflow/RouteFlow/build.sh", "-c", "-z", "ryu"]
+# Building RouteFlow by executing the build script
+RUN /var/dockerize_routeflow/RouteFlow/build.sh -c -z ryu
+
+EXPOSE 6653
