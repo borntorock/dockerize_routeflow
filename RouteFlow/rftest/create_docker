@@ -11,10 +11,6 @@ rfvmx="rfvmA"
 
 abs_path=$(pwd)
 
-# Install Docker 
-#apt-get -y --force-yes install lxc-docker
-
-
 if [ -e ../rfclient/rfclient ]; then
 	cp ../rfclient/rfclient config/$rfvmy
 	cp ../rfclient/rfclient config/$rfvmx
