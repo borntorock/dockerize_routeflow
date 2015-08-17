@@ -20,6 +20,15 @@ Now, with the above steps, you have setup the RouteFlow inside the docker contai
 You are now ready to run the tests 1 and 2. For running the tests, refer the "Running" section.
 
 
+# Installation
+Once the RouteFlow docker container is up and running, you have all the packages (required for running RouteFlow) installed in the RouteFlow docker image except Open vSwitch.
+
+You need to manually install Open vSwitch inside the RouteFlow docker container. 
+```
+$ sudo apt-get install openvswitch-switch openvswitch-common openvswitch-datapath-source
+```
+
+
 # Running
 
 The folder rftest contains all that is needed to create and run two test cases.
