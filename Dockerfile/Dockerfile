@@ -24,7 +24,7 @@ RUN apt-get update && \
                        lxc-docker
 
 # Installing Pipework inside the RouteFlow container
-ADD https://github.com/jpetazzo/pipework/blob/master/pipework /usr/sbin/pipework
+COPY https://github.com/jpetazzo/pipework/blob/master/pipework /usr/sbin/pipework
 RUN chmod +x /usr/sbin/pipework
 
 # Cloning of the RouteFlow repository in "/var" directory
