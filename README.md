@@ -1,6 +1,6 @@
 # Dockerize RouteFlow
 
-The goal of this is project to build the RouteFlow along with its virtual plane components inside the docker containers. 
+The goal of this project is to build the RouteFlow along with its virtual plane components inside the docker containers. 
 
 # Building
 
