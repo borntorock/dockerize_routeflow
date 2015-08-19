@@ -17,12 +17,6 @@ SUPER="$DO sudo"
 APT_OPTS="-y"
 PIP_OPTS=""
 
-ROUTEFLOW_GIT="https://github.com/routeflow/RouteFlow.git"
-DEPENDENCIES="build-essential pkg-config git-core libboost-dev libboost-dev \
-    libboost-program-options-dev libboost-thread-dev \
-    libboost-filesystem-dev libboost-system-dev libnl-3-dev libnl-route-3-dev \
-    python-dev python-pip python-bson"
-
 usage() {
     echo "usage:$0 [-hcqvdsgiu] [-m MONGO_VERSION] [-o OVS_VERSION]" \
          "[controllers]"
@@ -180,17 +174,9 @@ main() {
     get_versions $@
     parse_opts $@
 
-    if [ `basename $RFDIR` != "RouteFlow" ]; then
-        RFDIR="${RFDIR}/RouteFlow"
-        if [ ! -d "$RFDIR" ]; then
-            echo "Cannot find RouteFlow directory; Fetching it."
-            git clone "$ROUTEFLOW_GIT" || exit 1;
-        fi
-    fi
-
     # Import scripts from dist/
     . $RFDIR/dist/common.sh
-    for app in ovs mongo bson zmq; do
+    for app in bson zmq; do
         . "$RFDIR/dist/build_$app.sh"
     done
 
