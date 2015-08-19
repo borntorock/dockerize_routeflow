@@ -21,9 +21,9 @@ You are now ready to run the tests 1 and 2. For running the tests, refer the "Ru
 
 
 # Installation
-Once the RouteFlow docker container is up and running, you have all the packages (required for running RouteFlow) installed in the RouteFlow docker image except Open vSwitch.
+Once the RouteFlow docker container is up and running, you have all the packages (required for building RouteFlow) installed in the RouteFlow docker image using build.sh script except Open vSwitch.
 
-You need to manually install Open vSwitch inside the RouteFlow docker container. 
+You need to manually install Open vSwitch after login to the RouteFlow docker container. 
 ```
 $ sudo apt-get install openvswitch-switch openvswitch-common openvswitch-datapath-source
 ```
